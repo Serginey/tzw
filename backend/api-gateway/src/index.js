@@ -5,7 +5,7 @@ require('dotenv').config();
 
 const serviceConfig = require('./config/service');
 const swaggerSpec = require('./swagger');
-const { getDocsIndex, getDocsPage, getHealth } = require('./controllers');
+const { getHealth } = require('./controllers');
 const { applyGatewayMiddleware } = require('./middleware');
 const { proxyTo } = require('./services');
 
@@ -34,11 +34,10 @@ const services = [
 
 applyGatewayMiddleware(app, allowedOrigins);
 
-app.get('/docs', getDocsPage(services));
-app.use('/docs/gateway', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { customSiteTitle: 'API Gateway Documentation' }));
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { customSiteTitle: 'FEMS API Documentation' }));
+app.get('/api/docs.json', (req, res) => res.json(swaggerSpec));
+app.get('/docs', (req, res) => res.redirect('/api/docs'));
 app.get('/health', getHealth);
-app.get('/api/docs', (req, res) => res.redirect('/docs'));
-app.get('/api/docs.json', getDocsIndex(services));
 
 services.forEach(({ prefix, target }) => {
   app.use(prefix, proxyTo(target));

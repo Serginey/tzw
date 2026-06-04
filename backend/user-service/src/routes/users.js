@@ -81,6 +81,33 @@ router.put('/profile', [
  */
 router.put('/change-password', changePasswordValidators, validate, userController.changePassword);
 
+/**
+ * @swagger
+ * /api/users/invite-inspector:
+ *   post:
+ *     summary: Invite a new inspector (Admin only)
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [first_name, last_name, email]
+ *             properties:
+ *               first_name: { type: string, example: "Jane" }
+ *               last_name: { type: string, example: "Inspector" }
+ *               email: { type: string, format: email, example: "jane@example.com" }
+ *     responses:
+ *       201:
+ *         description: Inspector invitation created
+ *       400:
+ *         description: Validation error
+ *       403:
+ *         description: Admin role required
+ *       409:
+ *         description: Email already exists
+ */
 router.post('/invite-inspector', authorize('admin'), [
   body('first_name')
     .trim()

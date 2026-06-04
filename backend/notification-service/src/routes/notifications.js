@@ -14,6 +14,29 @@ const { authorize } = require('../middleware/authorize');
 
 router.use(authenticateToken);
 
+/**
+ * @swagger
+ * /api/notifications:
+ *   post:
+ *     summary: Create a notification (Admin/Inspector)
+ *     tags: [Notifications]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [user_id, message]
+ *             properties:
+ *               user_id: { type: integer }
+ *               message: { type: string }
+ *               status: { type: string, enum: [unread, read], example: "unread" }
+ *     responses:
+ *       201:
+ *         description: Notification created
+ *       403:
+ *         description: Admin or inspector role required
+ */
 router.post('/', authorize('admin', 'inspector'), notificationController.createNotification);
 
 /**
@@ -35,6 +58,23 @@ router.post('/', authorize('admin', 'inspector'), notificationController.createN
  */
 router.get('/', notificationController.getMyNotifications);
 
+/**
+ * @swagger
+ * /api/notifications/{id}:
+ *   get:
+ *     summary: Get notification by ID
+ *     tags: [Notifications]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Notification details
+ *       404:
+ *         description: Notification not found
+ */
 router.get('/:id', notificationController.getNotificationById);
 
 /**
