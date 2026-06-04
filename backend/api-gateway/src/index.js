@@ -1,7 +1,9 @@
 'use strict';
+const path = require('path');
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+require('dotenv').config({ path: path.join(__dirname, '../.env'), override: true });
 
 const serviceConfig = require('./config/service');
 const swaggerSpec = require('./swagger');
@@ -34,9 +36,9 @@ const services = [
 
 applyGatewayMiddleware(app, allowedOrigins);
 
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { customSiteTitle: 'FEMS API Documentation' }));
+app.get('/api/docs', (req, res) => res.redirect('/docs'));
 app.get('/api/docs.json', (req, res) => res.json(swaggerSpec));
-app.get('/docs', (req, res) => res.redirect('/api/docs'));
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { customSiteTitle: 'FEMS API Documentation' }));
 app.get('/health', getHealth);
 
 services.forEach(({ prefix, target }) => {

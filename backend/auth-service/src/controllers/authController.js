@@ -3,6 +3,12 @@ const authService = require('../services/authService');
 const notificationService = require('../services/notificationService');
 const config = require('../config/config');
 
+const sendEmailInBackground = (to, subject, text) => {
+  notificationService.sendEmailNotification(to, subject, text).catch((err) => {
+    console.error('[AuthController] Background email failed:', err.message);
+  });
+};
+
 /**
  * POST /api/auth/register
  */
@@ -10,7 +16,10 @@ const register = async (req, res, next) => {
   try {
     const { first_name, last_name, email, password, role } = req.body;
     const { user, otp } = await authService.register({ first_name, last_name, email, password, role });
-    await notificationService.sendEmailNotification(
+    if (config.nodeEnv !== 'production') {
+      console.log(`[AuthService] Verification OTP for ${email}: ${otp}`);
+    }
+    sendEmailInBackground(
       email,
       'Verify your FEMS account',
       `Your FEMS verification code is ${otp}. It expires in 10 minutes.`
@@ -38,7 +47,10 @@ const resendOtp = async (req, res, next) => {
   try {
     const result = await authService.resendEmailOtp(req.body.email);
     if (result) {
-      await notificationService.sendEmailNotification(
+      if (config.nodeEnv !== 'production') {
+        console.log(`[AuthService] Verification OTP for ${req.body.email}: ${result.otp}`);
+      }
+      sendEmailInBackground(
         req.body.email,
         'Your new FEMS verification code',
         `Your new FEMS verification code is ${result.otp}. It expires in 10 minutes.`
@@ -98,7 +110,7 @@ const forgotPassword = async (req, res, next) => {
 
     if (result) {
       const resetLink = `${config.frontendUrl}/reset-password?token=${result.resetToken}`;
-      await notificationService.sendEmailNotification(
+      sendEmailInBackground(
         email,
         'Password Reset Request — FEMS TZW LTD',
         `You requested a password reset. Click the link below (valid for 1 hour):\n\n${resetLink}\n\nIf you did not request this, ignore this email.`

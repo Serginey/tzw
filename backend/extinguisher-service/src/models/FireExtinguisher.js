@@ -6,6 +6,18 @@ const ALLOWED_TYPES = ['Water', 'CO2', 'Foam', 'Dry Chemical'];
 const ALLOWED_SIZES = ['1.5 lb', '5 lb', '9 lb', '12 lb'];
 const ALLOWED_STATUSES = ['Active', 'Expired', 'Under Maintenance', 'Decommissioned'];
 
+const toDateOnly = (value) => {
+  if (!value) return null;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
+};
+
+const todayDateOnly = () => {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+};
+
 const FireExtinguisher = sequelize.define(
   'FireExtinguisher',
   {
@@ -32,7 +44,15 @@ const FireExtinguisher = sequelize.define(
     installation_date: {
       type: DataTypes.DATEONLY,
       allowNull: false,
-      validate: { isDate: true },
+      validate: {
+        isDate: true,
+        notInFuture(value) {
+          const installationDate = toDateOnly(value);
+          if (installationDate && installationDate > todayDateOnly()) {
+            throw new Error('Installation date cannot be in the future');
+          }
+        },
+      },
     },
     expiry_date: {
       type: DataTypes.DATEONLY,
@@ -40,7 +60,9 @@ const FireExtinguisher = sequelize.define(
       validate: {
         isDate: true,
         isAfterInstallation(value) {
-          if (value && this.installation_date && value <= this.installation_date) {
+          const expiryDate = toDateOnly(value);
+          const installationDate = toDateOnly(this.installation_date);
+          if (expiryDate && installationDate && expiryDate <= installationDate) {
             throw new Error('Expiry date must be after installation date');
           }
         },
@@ -57,6 +79,14 @@ const FireExtinguisher = sequelize.define(
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',
+    hooks: {
+      beforeValidate(extinguisher) {
+        const expiryDate = toDateOnly(extinguisher.expiry_date);
+        if (expiryDate && expiryDate < todayDateOnly()) {
+          extinguisher.status = 'Expired';
+        }
+      },
+    },
   }
 );
 

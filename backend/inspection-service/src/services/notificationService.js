@@ -33,6 +33,9 @@ const sendEmailNotification = async (toEmail, subject, text) => {
       host: config.smtp.host,
       port: config.smtp.port,
       secure: false,
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 10000,
       auth: { user: config.smtp.user, pass: config.smtp.pass },
     });
 

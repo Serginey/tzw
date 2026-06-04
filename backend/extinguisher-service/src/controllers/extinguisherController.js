@@ -2,13 +2,35 @@
 const { FireExtinguisher, Inspection, MaintenanceLog } = require('../models');
 const { Op } = require('sequelize');
 
+const isPastDate = (value) => {
+  if (!value) return false;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return false;
+  const now = new Date();
+  const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  return date < today;
+};
+
+const normalizeStatusForExpiry = (payload) => ({
+  ...payload,
+  status: isPastDate(payload.expiry_date) ? 'Expired' : payload.status,
+});
+
 /**
  * POST /api/extinguishers
  */
 const create = async (req, res, next) => {
   try {
     const { serial_number, location, type, size, installation_date, expiry_date, status } = req.body;
-    const extinguisher = await FireExtinguisher.create({ serial_number, location, type, size, installation_date, expiry_date, status });
+    const extinguisher = await FireExtinguisher.create(normalizeStatusForExpiry({
+      serial_number,
+      location,
+      type,
+      size,
+      installation_date,
+      expiry_date,
+      status,
+    }));
     res.status(201).json({ success: true, message: 'Fire extinguisher added successfully.', data: { extinguisher } });
   } catch (err) {
     next(err);
@@ -95,7 +117,7 @@ const update = async (req, res, next) => {
       if (existing) return res.status(409).json({ success: false, message: 'Serial number already in use.' });
     }
 
-    await extinguisher.update({ serial_number, location, type, size, installation_date, expiry_date, status });
+    await extinguisher.update(normalizeStatusForExpiry({ serial_number, location, type, size, installation_date, expiry_date, status }));
     res.json({ success: true, message: 'Fire extinguisher updated successfully.', data: { extinguisher } });
   } catch (err) {
     next(err);

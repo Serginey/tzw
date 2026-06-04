@@ -5,7 +5,7 @@ const extController = require('../controllers/extinguisherController');
 const { authenticateToken } = require('../middleware/auth');
 const { authorize } = require('../middleware/authorize');
 const { validate } = require('../middleware/validate');
-const { extinguisherValidators } = require('../validators/extinguisherValidators');
+const { extinguisherValidators, extinguisherUpdateValidators } = require('../validators/extinguisherValidators');
 
 /**
  * @swagger
@@ -101,7 +101,7 @@ router.get('/:id', extController.getById);
  *       200:
  *         description: Updated successfully
  */
-router.put('/:id', authorize('admin'), extinguisherValidators, validate, extController.update);
+router.put('/:id', authorize('admin'), extinguisherUpdateValidators, validate, extController.update);
 
 /**
  * @swagger

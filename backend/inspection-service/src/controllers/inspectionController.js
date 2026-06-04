@@ -2,6 +2,25 @@
 const { Inspection, FireExtinguisher, User } = require('../models');
 const notificationService = require('../services/notificationService');
 
+const notifyInspectorInBackground = ({ inspector, extinguisher, scheduled_date, scheduled_time }) => {
+  const notificationMessage = `New inspection scheduled for extinguisher ${extinguisher.serial_number} on ${scheduled_date} at ${scheduled_time}`;
+  const emailMessage = `An inspection has been scheduled for fire extinguisher ${extinguisher.serial_number} (${extinguisher.location}) on ${scheduled_date} at ${scheduled_time}.`;
+
+  Promise.resolve()
+    .then(() => notificationService.createNotification(inspector.id, notificationMessage))
+    .then(() => {
+      if (!inspector.email) return null;
+      return notificationService.sendEmailNotification(
+        inspector.email,
+        'New Inspection Scheduled - FEMS TZW LTD',
+        emailMessage
+      );
+    })
+    .catch((err) => {
+      console.error('[InspectionController] Background inspector notification failed:', err.message);
+    });
+};
+
 /**
  * POST /api/inspections
  */
@@ -11,7 +30,7 @@ const create = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Inspectors conduct inspections; users schedule them.' });
     }
 
-    const { fire_extinguisher_id, scheduled_date, scheduled_time, inspector_id, status, notes } = req.body;
+    const { fire_extinguisher_id, scheduled_date, scheduled_time, inspector_id, notes } = req.body;
 
     // Verify extinguisher and inspector exist
     const [extinguisher, inspector] = await Promise.all([
@@ -29,22 +48,11 @@ const create = async (req, res, next) => {
       scheduled_time,
       inspector_id,
       scheduled_by_user_id: req.user.id,
-      status: status || 'Scheduled',
+      status: 'Scheduled',
       notes,
     });
 
-    // Notify inspector
-    await notificationService.createNotification(
-      inspector_id,
-      `New inspection scheduled for extinguisher ${extinguisher.serial_number} on ${scheduled_date} at ${scheduled_time}`
-    );
-    if (inspector.email) {
-      await notificationService.sendEmailNotification(
-        inspector.email,
-        'New Inspection Scheduled — FEMS TZW LTD',
-        `An inspection has been scheduled for fire extinguisher ${extinguisher.serial_number} (${extinguisher.location}) on ${scheduled_date} at ${scheduled_time}.`
-      );
-    }
+    notifyInspectorInBackground({ inspector, extinguisher, scheduled_date, scheduled_time });
 
     res.status(201).json({ success: true, message: 'Inspection scheduled successfully.', data: { inspection } });
   } catch (err) {

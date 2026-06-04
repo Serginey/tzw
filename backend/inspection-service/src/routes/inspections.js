@@ -34,7 +34,6 @@ router.use(authenticateToken);
  *               scheduled_date: { type: string, format: date, example: "2026-07-01" }
  *               scheduled_time: { type: string, example: "09:00" }
  *               inspector_id: { type: integer }
- *               status: { type: string, enum: [Scheduled, Completed, Overdue, Cancelled] }
  *               notes: { type: string }
  *     responses:
  *       201:

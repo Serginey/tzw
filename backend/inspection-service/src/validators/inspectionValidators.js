@@ -25,11 +25,6 @@ const inspectionValidators = [
     .notEmpty().withMessage('Inspector is required')
     .isInt({ min: 1 }).withMessage('Inspector ID must be a positive integer'),
 
-  body('status')
-    .optional()
-    .isIn(['Pending', 'Scheduled', 'Completed', 'Approved', 'Reviewed', 'Overdue', 'Cancelled'])
-    .withMessage('Status must be one of: Pending, Scheduled, Completed, Approved, Reviewed, Overdue, Cancelled'),
-
   body('notes')
     .optional()
     .isLength({ max: 1000 }).withMessage('Notes must not exceed 1000 characters'),

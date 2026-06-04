@@ -115,19 +115,8 @@ npm run dev
 
 Frontend: `http://localhost:3000`  
 API Gateway: `http://localhost:5000/api`  
-Gateway docs index: `http://localhost:5000/api/docs`
-
-Each microservice also exposes Swagger UI at `/docs`, for example:
-
-```txt
-http://localhost:5001/docs
-http://localhost:5002/docs
-http://localhost:5003/docs
-http://localhost:5004/docs
-http://localhost:5005/docs
-http://localhost:5006/docs
-http://localhost:5007/docs
-```
+Single Swagger endpoint: `http://localhost:5000/docs`  
+Combined OpenAPI JSON: `http://localhost:5000/api/docs.json`
 
 ## Docker
 

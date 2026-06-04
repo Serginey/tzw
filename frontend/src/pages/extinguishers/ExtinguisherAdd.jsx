@@ -106,7 +106,10 @@ export default function ExtinguisherAdd() {
                 type="date"
                 className={`form-control ${errors.installation_date ? 'error' : ''}`}
                 max={today}
-                {...register('installation_date', { required: 'Installation date is required' })}
+                {...register('installation_date', {
+                  required: 'Installation date is required',
+                  validate: (val) => val <= today || 'Installation date cannot be in the future',
+                })}
               />
               {errors.installation_date && <div className="form-error">{errors.installation_date.message}</div>}
             </div>
@@ -117,7 +120,7 @@ export default function ExtinguisherAdd() {
                 id="expiry_date"
                 type="date"
                 className={`form-control ${errors.expiry_date ? 'error' : ''}`}
-                min={watchInstall ? new Date(new Date(watchInstall).getTime() + 86400000).toISOString().split('T')[0] : today}
+                min={watchInstall ? new Date(new Date(watchInstall).getTime() + 86400000).toISOString().split('T')[0] : undefined}
                 {...register('expiry_date', {
                   required: 'Expiry date is required',
                   validate: (val) => {

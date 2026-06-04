@@ -21,6 +21,9 @@ const sendInspectorInvite = async (email, password) => {
       host: config.smtp.host,
       port: config.smtp.port,
       secure: false,
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 10000,
       auth: { user: config.smtp.user, pass: config.smtp.pass },
     });
 
@@ -41,6 +44,12 @@ const sendInspectorInvite = async (email, password) => {
   } catch (err) {
     console.error('[UserService] Inspector invite email failed:', err.message);
   }
+};
+
+const sendInspectorInviteInBackground = (email, password) => {
+  sendInspectorInvite(email, password).catch((err) => {
+    console.error('[UserService] Background inspector invite failed:', err.message);
+  });
 };
 
 /**
@@ -196,7 +205,10 @@ const inviteInspector = async (req, res, next) => {
       is_verified: true,
     });
 
-    await sendInspectorInvite(email, temporaryPassword);
+    if (config.nodeEnv !== 'production') {
+      console.log(`[UserService] Temporary inspector password for ${email}: ${temporaryPassword}`);
+    }
+    sendInspectorInviteInBackground(email, temporaryPassword);
     res.status(201).json({
       success: true,
       message: 'Inspector invited successfully. Login credentials were sent by email.',

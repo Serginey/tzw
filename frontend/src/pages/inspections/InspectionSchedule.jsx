@@ -17,7 +17,6 @@ export default function InspectionSchedule() {
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
       fire_extinguisher_id: searchParams.get('extinguisher') || '',
-      status: 'Scheduled',
     },
   });
 
@@ -125,14 +124,6 @@ export default function InspectionSchedule() {
               {errors.scheduled_time && <div className="form-error">⚠ {errors.scheduled_time.message}</div>}
             </div>
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="sched-status">Status</label>
-              <select id="sched-status" className="form-control" {...register('status')}>
-                <option value="Scheduled">Scheduled</option>
-                <option value="Completed">Completed</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
-            </div>
           </div>
 
           <div className="form-group">
